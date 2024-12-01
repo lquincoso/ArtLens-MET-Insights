@@ -4,7 +4,7 @@
 //
 //  Created by Mauricio Piedra on 11/21/24.
 //
-
+// Views/ToursView.swift
 import SwiftUI
 import MapKit
 
@@ -22,6 +22,16 @@ struct ToursView: View {
             longitudeDelta: 0.005
         )
     )
+    
+    var pathCoordinates: [CLLocationCoordinate2D] {
+        viewModel.path.compactMap { galleryId in
+            guard let gallery = viewModel.galleries[galleryId] else { return nil }
+            return CLLocationCoordinate2D(
+                latitude: gallery.coordinates[0],
+                longitude: gallery.coordinates[1]
+            )
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -83,10 +93,19 @@ struct ToursView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                     
-                    Map(coordinateRegion: $region)
+                    ZStack {
+                        CustomMapView(
+                            region: $region,
+                            annotations: createAnnotations(),
+                            pathCoordinates: pathCoordinates
+                        )
                         .frame(height: 400)
                         .cornerRadius(12)
                         .shadow(radius: 4)
+                    }
+                    .frame(height: 400)
+                    .cornerRadius(12)
+                    .shadow(radius: 4)
                 }
                 .padding()
             }
@@ -106,5 +125,30 @@ struct ToursView: View {
                 }
             }
         }
+    }
+    
+    private func createAnnotations() -> [GalleryAnnotation] {
+        let allGalleries = viewModel.galleries.map { (id, gallery) in
+            GalleryAnnotation(
+                id: id,
+                coordinate: CLLocationCoordinate2D(
+                    latitude: gallery.coordinates[0],
+                    longitude: gallery.coordinates[1]
+                ),
+                markerType: getMarkerType(for: id)
+            )
+        }
+        return allGalleries
+    }
+    
+    private func getMarkerType(for galleryId: String) -> MarkerType {
+        if galleryId == viewModel.path.first {
+            return .start
+        } else if galleryId == viewModel.path.last {
+            return .end
+        } else if viewModel.path.contains(galleryId) {
+            return .waypoint
+        }
+        return .regular
     }
 }

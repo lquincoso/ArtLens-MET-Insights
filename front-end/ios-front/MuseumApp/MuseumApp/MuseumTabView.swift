@@ -25,6 +25,12 @@ struct MuseumTabView: View {
                 }
                 .tag(1)
             
+            ArtworkDetailView(artworkId: 985) // Example artwork ID
+                .tabItem {
+                    Label("Featured", systemImage: "star.fill")
+                }
+                .tag(1)
+            
             CollectionsView()
                 .tabItem {
                     Label("Collections", systemImage: "square.grid.2x2")
